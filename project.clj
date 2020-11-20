@@ -1,4 +1,4 @@
-(defproject confick "0.1.0-SNAPSHOT"
+(defproject zcfux/confick "0.1.0-SNAPSHOT"
   :description "Simple, stupid configuration management."
   :url "https://github.com/20centaurifux/goophi"
   :license {:name "AGPLv3"
@@ -6,7 +6,6 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/core.memoize "1.0.236"]
                  [environ "1.2.0"]]
-  :main ^:skip-aot confick.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :test {:env {:edn-config-path "test.edn"}}}
