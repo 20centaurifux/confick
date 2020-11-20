@@ -10,8 +10,6 @@ The library can be installed from Clojars using Leiningen:
 
 ## Example
 
-[![Clojars Project](http://clojars.org/zcfux/clojure-tlv/latest-version.svg)](https://clojars.org/zcfux/clojure-tlv)
-
 	(require '[confick.core :as cnf])
 
 	(bind [^:required addr [:tcp :address]
