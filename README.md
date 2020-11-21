@@ -13,5 +13,5 @@ The library can be installed from Clojars using Leiningen:
 	(require '[confick.core :as cnf])
 
 	(cnf/bind [^:required addr [:tcp :address]
-	           ^{default: 80} port [:tcp :port]]
+	           ^{:default 80} port [:tcp :port]]
 	  (format \"%s:%d\" addr port))
