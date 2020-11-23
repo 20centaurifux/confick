@@ -15,3 +15,5 @@ The library can be installed from Clojars using Leiningen:
 	(cnf/bind [^:required addr [:tcp :address]
 	           ^{:default 80} port [:tcp :port]]
 	  (format \"%s:%d\" addr port))
+
+Use bind\* to assign configuration values at compile-time.

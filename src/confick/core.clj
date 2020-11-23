@@ -2,57 +2,110 @@
   (:require [clojure.edn :as edn]
             [clojure.core.memoize :as memo]
             [clojure.string :as s]
-            [environ.core :refer [env]]))
+            [environ.core :refer [env]])
+  (:import [java.lang NumberFormatException]))
 
-(defonce ^:private timeout-millis 30000)
+(defn- try-parse-int
+  [val & {:keys [default]}]
+  (try
+    (-> val str s/trim Integer/parseInt)
+    (catch NumberFormatException _ default)))
+
+(defonce ^:private cache-millis (try-parse-int
+                                 (env :edn-config-cache-millis)
+                                 :default 60000))
 
 (defonce ^:private edn-config-path (or (env :edn-config-path)
                                        "config.edn"))
 
-(def ^:private load-config
-  (memo/ttl #(-> (slurp edn-config-path)
-                 edn/read-string)
-            :ttl/threshold timeout-millis))
+(defn- from-fs
+  []
+  (-> (slurp edn-config-path)
+      edn/read-string))
+
+(defonce ^:private from-cache
+  (memo/ttl from-fs
+            :ttl/threshold cache-millis))
+
+(defn gulp
+  "Reads the entire EDN formatted configuration file.
+
+  The default relative path of the configuration file is
+  \"config.edn\". It gets overwritten by the EDN_CONFIG_PATH
+  environment variable or Java system property.
+
+  Set EDN_CONFIG_CACHE_MILLIS to zero to disable caching."
+  []
+  (if (pos? cache-millis)
+    (from-cache)
+    (from-fs)))
 
 (defn- ->keys
   [ks]
   (flatten [ks]))
 
-(defn- lookup
-  [m ks]
-  (if-some [v (or (get-in (load-config) (->keys ks))
-                  (:default m))]
+(defn lookup
+  "Searches for a configuration value, where ks is a sequence
+  of keys."
+  [ks & {:keys [required default] :or {required false default nil}}]
+  (if-some [v (get-in (gulp)
+                      (->keys ks)
+                      default)]
     v
-    (when (:required m) (throw (Exception. (format "Key %s not found."
-                                                   (s/join " "
-                                                           (->keys ks))))))))
+    (when required
+      (throw (Exception. (format "Key %s not found."
+                                 (s/join " " (->keys ks))))))))
 
 (defmacro bind
   "Evaluates body in a lexical scope in which the symbols in the
   binding-forms are bound to their corresponding configuration
   values.
 
+  Configuration values are looked up at runtime.
+
   Example:
     (bind [addr [:tcp :address]
            port [:tcp :port]]
       (format \"%s:%d\" addr port))
 
-  Use metadata to assign default values or make configuration keys
-  mandatory.
+  Use metadata to assign default values or make configuration
+  keys mandatory.
 
   Example:
     (bind [^:required addr [:tcp :address]
-           ^{default: 70} port [:tcp :port]]
-      (format \"%s:%d\" addr port))
-
-  Configuration is loaded from an EDN formatted file named
-  \"config.edn\" which must be located in the working directory of
-  the process. File content is cached.
-
-  Overwrite the path by setting the EDN_CONFIG_PATH environment
-  variable or Java system property."
+           ^{default: 80} port [:tcp :port]]
+      (format \"%s:%d\" addr port))"
   [bindings & body]
   `(let* ~(vec (mapcat #(list (first %)
-                              (lookup (meta (first %)) (second %)))
+                              (cons 'confick.core/lookup
+                                    (cons (second %)
+                                          (flatten (vec (meta (first %)))))))
                        (partition 2 bindings)))
-         ~@body))
+     ~@body))
+
+(defmacro bind*
+  "Evaluates body in a lexical scope in which the symbols in the
+  binding-forms are bound to their corresponding configuration
+  values.
+
+  Configuration values are looked up at compile-time.
+
+  Example:
+    (bind* [addr [:tcp :address]
+            port [:tcp :port]]
+      (format \"%s:%d\" addr port))
+
+  Use metadata to assign default values or make configuration
+  keys mandatory.
+
+  Example:
+    (bind* [^:required addr [:tcp :address]
+            ^{default: 80} port [:tcp :port]]
+      (format \"%s:%d\" addr port))"
+  [bindings & body]
+  `(let* ~(vec (mapcat #(list (first %)
+                              (apply lookup
+                                     (cons (second %)
+                                           (flatten (vec (meta (first %)))))))
+                       (partition 2 bindings)))
+     ~@body))
