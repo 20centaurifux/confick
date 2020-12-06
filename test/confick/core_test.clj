@@ -1,7 +1,6 @@
 (ns confick.core-test
   (:require [clojure.test :refer :all]
-            [confick.core :refer :all]
-            [environ.core :refer [env]]))
+            [confick.core :refer :all]))
 
 (deftest runtime
   (testing "All values defined."

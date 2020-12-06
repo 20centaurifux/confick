@@ -1,6 +1,6 @@
-(defproject zcfux/confick "0.1.0"
+(defproject zcfux/confick "0.1.1"
   :description "Simple, stupid configuration management."
-  :url "https://github.com/20centaurifux/goophi"
+  :url "https://github.com/20centaurifux/confick"
   :license {:name "AGPLv3"
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :dependencies [[org.clojure/clojure "1.10.1"]
