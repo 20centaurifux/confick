@@ -1,4 +1,4 @@
-(defproject zcfux/confick "0.1.0-SNAPSHOT"
+(defproject zcfux/confick "0.1.0"
   :description "Simple, stupid configuration management."
   :url "https://github.com/20centaurifux/goophi"
   :license {:name "AGPLv3"
@@ -10,4 +10,6 @@
   :profiles {:uberjar {:aot :all}
              :test {:env {:edn-config-path "test.edn"}}}
   :plugins [[lein-cljfmt "0.6.7"]
-            [lein-environ "1.2.0"]])
+            [lein-environ "1.2.0"]
+            [lein-codox "0.10.7"]]
+  :codox { :output-path "./doc" })
