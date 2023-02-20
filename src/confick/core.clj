@@ -1,14 +1,14 @@
 (ns confick.core
   (:require [clojure.edn :as edn]
             [clojure.core.memoize :as memo]
-            [clojure.string :as s]
+            [clojure.string :as str]
             [environ.core :refer [env]])
   (:import [java.lang NumberFormatException]))
 
 (defn- try-parse-int
   [val & {:keys [default]}]
   (try
-    (-> val str s/trim Integer/parseInt)
+    (-> val str str/trim Integer/parseInt)
     (catch NumberFormatException _ default)))
 
 (defonce ^:private cache-millis (try-parse-int
@@ -30,9 +30,9 @@
 (defn gulp
   "Reads the entire EDN formatted configuration file.
 
-  The default relative path of the configuration file is
-  \"config.edn\". It gets overwritten by the EDN_CONFIG_PATH
-  environment variable or Java system property.
+  The default relative path of the configuration file is \"config.edn\". It
+  gets overwritten by the EDN_CONFIG_PATH environment variable or Java system
+  property.
 
   Set EDN_CONFIG_CACHE_MILLIS to zero to disable caching."
   []
@@ -45,8 +45,7 @@
   (flatten [ks]))
 
 (defn lookup
-  "Searches for a configuration value, where ks is a sequence
-  of keys."
+  "Searches for a configuration value, where `ks` is a sequence of keys."
   [ks & {:keys [required default] :or {required false default nil}}]
   (if-some [v (get-in (gulp)
                       (->keys ks)
@@ -54,12 +53,11 @@
     v
     (when required
       (throw (Exception. (format "Key %s not found."
-                                 (s/join " " (->keys ks))))))))
+                                 (str/join " " (->keys ks))))))))
 
 (defmacro bind
-  "Evaluates body in a lexical scope in which the symbols in the
-  binding-forms are bound to their corresponding configuration
-  values.
+  "Evaluates `body` in a lexical scope in which the symbols in the
+  binding-forms are bound to their corresponding configuration values.
 
   Configuration values are looked up at runtime.
 
@@ -68,8 +66,7 @@
            port [:tcp :port]]
       (format \"%s:%d\" addr port))
 
-  Use metadata to assign default values or make configuration
-  keys mandatory.
+  Use metadata to assign default values or make configuration keys mandatory.
 
   Example:
     (bind [^:required addr [:tcp :address]
@@ -81,12 +78,11 @@
                                     (cons (second %)
                                           (flatten (vec (meta (first %)))))))
                        (partition 2 bindings)))
-     ~@body))
+         ~@body))
 
 (defmacro bind*
-  "Evaluates body in a lexical scope in which the symbols in the
-  binding-forms are bound to their corresponding configuration
-  values.
+  "Evaluates `body` in a lexical scope in which the symbols in the
+  binding-forms are bound to their corresponding configuration values.
 
   Configuration values are looked up at compile-time.
 
@@ -95,8 +91,7 @@
             port [:tcp :port]]
       (format \"%s:%d\" addr port))
 
-  Use metadata to assign default values or make configuration
-  keys mandatory.
+  Use metadata to assign default values or make configuration keys mandatory.
 
   Example:
     (bind* [^:required addr [:tcp :address]
@@ -108,4 +103,4 @@
                                      (cons (second %)
                                            (flatten (vec (meta (first %)))))))
                        (partition 2 bindings)))
-     ~@body))
+         ~@body))

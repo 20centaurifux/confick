@@ -1,4 +1,4 @@
-(defproject zcfux/confick "0.1.3"
+(defproject zcfux/confick "0.1.4"
   :description "Simple, stupid configuration management."
   :url "https://github.com/20centaurifux/confick"
   :license {:name "AGPLv3"
@@ -9,7 +9,7 @@
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :test {:env {:edn-config-path "test.edn"}}}
-  :plugins [[lein-cljfmt "0.9.0"]
+  :plugins [[lein-cljfmt "0.9.2"]
             [lein-environ "1.2.0"]
             [lein-codox "0.10.8"]]
   :codox { :output-path "./doc" })
