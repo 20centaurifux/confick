@@ -6,7 +6,7 @@ confick is a tiny library to load and cache configuration settings from an [EDN]
 
 The library can be installed from Clojars using Leiningen:
 
-[![Clojars Project](http://clojars.org/zcfux/confick/latest-version.svg)](https://clojars.org/zcfux/confick)
+[![Clojars Project](https://img.shields.io/clojars/v/de.dixieflatline/confick.svg)](https://clojars.org/de.dixieflatline/confick)
 
 ## Example
 
