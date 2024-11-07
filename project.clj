@@ -1,4 +1,4 @@
-(defproject de.dixieflatline/confick "0.1.4"
+(defproject de.dixieflatline/confick "0.2.0-SNAPSHOT"
   :description "Simple, stupid configuration management."
   :url "https://github.com/20centaurifux/confick"
   :license {:name "AGPLv3"
