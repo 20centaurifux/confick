@@ -2,6 +2,7 @@
   (:require [clojure.edn :as edn]
             [clojure.core.memoize :as memo]
             [clojure.string :as str]
+            [clojure.spec.alpha :as s]
             [environ.core :refer [env]])
   (:import [java.lang NumberFormatException]))
 
@@ -20,7 +21,8 @@
 
 (defn- from-fs
   []
-  (-> (slurp edn-config-path)
+  (-> edn-config-path
+      slurp
       edn/read-string))
 
 (defonce ^:private from-cache
@@ -40,35 +42,43 @@
     (from-cache)
     (from-fs)))
 
-(defn- ->keys
-  [ks]
-  (flatten [ks]))
-
 (defn lookup
   "Searches for a configuration value, where ks is a sequence of keys."
-  [ks & {:keys [required default] :or {required false default nil}}]
-  (if-some [v (get-in (gulp)
-                      (->keys ks)
-                      default)]
-    v
-    (when required
-      (throw (Exception. (format "Key %s not found."
-                                 (str/join " " (->keys ks))))))))
+  [ks & {:keys [required default conform] :or {conform any?}}]
+  (let [path (flatten [ks])]
+    (letfn [(assert-required [v]
+              (if (#{::none} v)
+                (if required
+                  (throw (ex-info "Key not found."
+                                  {:path path :value v}))
+                  default)
+                v))
+
+            (assert-spec [v]
+              (if (s/valid? conform v)
+                v
+                (throw (ex-info "Value doesn't conform spec."
+                                {:path path :value v :spec conform}))))]
+      (-> (gulp)
+          (get-in path ::none)
+          assert-required
+          assert-spec))))
 
 (defmacro bind
   "Evaluates body in a lexical scope in which the symbols in the
-  binding-forms are bound to their corresponding configuration values.
+   binding-forms are bound to their corresponding configuration values.
 
   Example:
     (bind [addr [:tcp :address]
            port [:tcp :port]]
       (format \"%s:%d\" addr port))
 
-  Use metadata to assign default values or make configuration keys mandatory.
+  Use metadata to assign default values, make configuration keys mandatory or
+  validate them with the Spec library.
 
   Example:
     (bind [^:required addr [:tcp :address]
-           ^{default: 80} port [:tcp :port]]
+           ^{:default 80 :conform pos?} port [:tcp :port]
       (format \"%s:%d\" addr port))"
   [bindings & body]
   `(let* ~(vec (mapcat #(list (first %)
