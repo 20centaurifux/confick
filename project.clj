@@ -8,7 +8,7 @@
                  [environ "1.2.0"]]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
-             :test {:env {:edn-config-path "test.edn"}}}
+             :test {:env {:confick-path "test.edn"}}}
   :plugins [[dev.weavejester/lein-cljfmt "0.13.0"]
             [lein-environ "1.2.0"]
             [lein-codox "0.10.8"]]

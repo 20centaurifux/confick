@@ -13,10 +13,10 @@
     (catch NumberFormatException _ default)))
 
 (defonce ^:private cache-millis (try-parse-int
-                                 (env :edn-config-cache-millis)
+                                 (env :confick-cache-millis)
                                  60000))
 
-(defonce ^:private edn-config-path (or (env :edn-config-path)
+(defonce ^:private edn-config-path (or (env :confick-path)
                                        "config.edn"))
 
 (defn- from-fs
@@ -33,10 +33,10 @@
   "Reads the entire EDN formatted configuration file.
 
   The default relative path of the configuration file is \"config.edn\". It
-  gets overwritten by the EDN_CONFIG_PATH environment variable or Java system
+  gets overwritten by the CONFICK_PATH environment variable or Java system
   property.
 
-  Set EDN_CONFIG_CACHE_MILLIS to zero to disable caching."
+  Set CONFICK_CACHE_MILLIS to zero to disable caching."
   []
   (if (pos? cache-millis)
     (from-cache)
