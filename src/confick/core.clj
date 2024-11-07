@@ -68,18 +68,22 @@
   "Evaluates body in a lexical scope in which the symbols in the
    binding-forms are bound to their corresponding configuration values.
 
-  Example:
-    (bind [addr [:tcp :address]
-           port [:tcp :port]]
-      (format \"%s:%d\" addr port))
+   Example:
+     (bind [addr [:tcp :address]
+            port [:tcp :port]]
+       (format \"%s:%d\" addr port))
 
-  Use metadata to assign default values, make configuration keys mandatory or
-  validate them with the Spec library.
+   Use metadata to assign default values, make configuration keys mandatory or
+   validate them with the Spec library.
 
-  Example:
-    (bind [^:required addr [:tcp :address]
-           ^{:default 80 :conform pos?} port [:tcp :port]
-      (format \"%s:%d\" addr port))"
+   Example:
+     (bind [^:required addr [:tcp :address]
+            ^{:default 80 :conform pos?} port [:tcp :port]
+       (format \"%s:%d\" addr port))
+   
+   Throws an ExceptionInfo if a required key is missing or a value doesn't
+   conform a spec. The additional data contains path and value of the affected
+   key."
   [bindings & body]
   `(let* ~(vec (mapcat #(list (first %)
                               (cons 'confick.core/lookup
