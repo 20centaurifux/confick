@@ -12,4 +12,5 @@
   :plugins [[dev.weavejester/lein-cljfmt "0.13.0"]
             [lein-environ "1.2.0"]
             [lein-codox "0.10.8"]]
-  :codox { :output-path "./doc" })
+  :cljfmt {:load-config-file? true}
+  :codox {:output-path "./doc"})

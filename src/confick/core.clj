@@ -1,8 +1,8 @@
 (ns confick.core
-  (:require [clojure.edn :as edn]
-            [clojure.core.memoize :as memo]
-            [clojure.string :as str]
+  (:require [clojure.core.memoize :as memo]
+            [clojure.edn :as edn]
             [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [environ.core :refer [env]])
   (:import [java.lang NumberFormatException]))
 
