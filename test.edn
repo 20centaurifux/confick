@@ -1,4 +1,2 @@
-{
- :foo "bar"
- :answer { :of { :everything 42 } }
-}
+{:foo "bar"
+ :answer {:of {:everything 42}}}

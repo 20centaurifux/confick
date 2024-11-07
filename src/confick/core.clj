@@ -7,27 +7,26 @@
   (:import [java.lang NumberFormatException]))
 
 (defn- try-parse-int
-  [val default]
+  [x default]
   (try
-    (-> val str str/trim Integer/parseInt)
+    (-> x str str/trim Integer/parseInt)
     (catch NumberFormatException _ default)))
 
 (defonce ^:private cache-millis (try-parse-int
                                  (env :confick-cache-millis)
                                  60000))
 
-(defonce ^:private edn-config-path (or (env :confick-path)
-                                       "config.edn"))
+(defonce ^:private config-path (or (env :confick-path)
+                                   "config.edn"))
 
 (defn- from-fs
   []
-  (-> edn-config-path
+  (-> config-path
       slurp
       edn/read-string))
 
-(defonce ^:private from-cache
-  (memo/ttl from-fs
-            :ttl/threshold cache-millis))
+(defonce ^:private from-cache (memo/ttl from-fs
+                                        :ttl/threshold cache-millis))
 
 (defn gulp
   "Reads the entire EDN formatted configuration file.
@@ -82,8 +81,8 @@
        (format \"%s:%d\" addr port))
    
    Throws an ExceptionInfo if a required key is missing or a value doesn't
-   conform a spec. The additional data contains path and value of the affected
-   key."
+   conform a spec. The additional data of the exception contains path and value
+   of the affected key."
   [bindings & body]
   `(let* ~(vec (mapcat #(list (first %)
                               (cons 'confick.core/lookup
