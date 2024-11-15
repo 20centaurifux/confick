@@ -52,7 +52,6 @@
                                   {:path path :value v}))
                   default)
                 v))
-
             (assert-spec [v]
               (if (s/valid? conform v)
                 v
@@ -84,9 +83,9 @@
    conform a spec. The additional data of the exception contains path and value
    of the affected key."
   [bindings & body]
-  `(let* ~(vec (mapcat #(list (first %)
-                              (cons 'confick.core/lookup
-                                    (cons (second %)
-                                          (flatten (vec (meta (first %)))))))
+  `(let* ~(vec (mapcat (fn [[v ks]]
+                         (list v (cons 'confick.core/lookup
+                                       (cons ks
+                                             (flatten (vec (meta v)))))))
                        (partition 2 bindings)))
          ~@body))
