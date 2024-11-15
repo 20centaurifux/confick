@@ -6,7 +6,13 @@
   (testing "load configuration"
     (let [m (gulp)]
       (is (= {:foo "bar" :answer {:of {:everything 42}}}
-             m)))))
+             m))))
+
+  (testing "file not found"
+    (with-redefs [confick.core/cache-millis 0
+                  confick.core/config-path "xyz"]
+      (let [m (gulp)]
+        (is (= {} m))))))
 
 (deftest test-lookup
   (testing "key found"

@@ -21,15 +21,17 @@
 
 (defn- from-fs
   []
-  (-> config-path
-      slurp
-      edn/read-string))
+  (try
+    (-> config-path
+        slurp
+        edn/read-string)
+    (catch java.io.FileNotFoundException _ {})))
 
 (defonce ^:private from-cache (memo/ttl from-fs
                                         :ttl/threshold cache-millis))
 
 (defn gulp
-  "Reads the entire EDN formatted configuration file.
+  "Reads the entire edn formatted configuration file.
 
   The default relative path of the configuration file is \"config.edn\". It
   gets overwritten by the CONFICK_PATH environment variable or Java system
