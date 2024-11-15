@@ -1,6 +1,6 @@
 # confick
 
-confick is a tiny library to load and cache configuration data from an [EDN](https://github.com/edn-format/edn) file.
+confick is a tiny library to load and cache configuration data from an [edn](https://github.com/edn-format/edn) file.
 
 ## Installation
 
@@ -15,7 +15,19 @@ The library can be installed from Clojars:
 	;; receive configuration value
 	(lookup [:tcp :address] :required true)
 
-	;; bind configuration data to vars
+	;; bind configuration values in a let block
 	(bind [^:required addr [:tcp :address]
 	       ^{:default 80 :conform nat-int?} port [:tcp :port]]
 	  (println (format "%s:%d" addr port)))
+
+	;; access configuration values in EDN
+	(require '[confick.edn :as edn])
+
+	(edn/read-string "{:address #cnf/req [:tcp port] :port #cnf/or [[:tcp :port] 80]}")
+
+## Configuration
+
+The default relative path of the configuration file is \"config.edn\". It gets
+overwritten by the CONFICK_PATH environment variable or Java system property.
+
+Set CONFICK_CACHE_MILLIS to zero to disable caching.
