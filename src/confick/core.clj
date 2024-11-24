@@ -3,7 +3,7 @@
             [clojure.edn :as edn]
             [clojure.spec.alpha :as s]
             [clojure.string :as str]
-            [environ.core :refer [env]])
+            [environ.core :as env])
   (:import [java.lang NumberFormatException]))
 
 (defn- try-parse-int
@@ -13,10 +13,10 @@
     (catch NumberFormatException _ default)))
 
 (defonce ^:private cache-millis (try-parse-int
-                                 (env :confick-cache-millis)
+                                 (env/env :confick-cache-millis)
                                  60000))
 
-(defonce ^:private config-path (or (env :confick-path)
+(defonce ^:private config-path (or (env/env :confick-path)
                                    "config.edn"))
 
 (defn- from-fs
@@ -27,8 +27,7 @@
         edn/read-string)
     (catch java.io.FileNotFoundException _ {})))
 
-(defonce ^:private from-cache (memo/ttl from-fs
-                                        :ttl/threshold cache-millis))
+(defonce ^:private from-cache (memo/ttl from-fs :ttl/threshold cache-millis))
 
 (defn gulp
   "Reads the entire edn formatted configuration file.
@@ -44,7 +43,11 @@
     (from-fs)))
 
 (defn lookup
-  "Searches for a configuration value, where ks is a sequence of keys."
+  "Searches for a configuration value, where ks is a sequence of keys.
+
+   Throws an ExceptionInfo if a required key is missing or a value doesn't
+   conform a spec. The additional data of the exception contains path and value
+   of the affected key."
   [ks & {:keys [required default conform] :or {conform any?}}]
   (let [path (flatten [ks])]
     (letfn [(assert-required [v]

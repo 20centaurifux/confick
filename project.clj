@@ -1,4 +1,4 @@
-(defproject de.dixieflatline/confick "0.2.0-SNAPSHOT"
+(defproject de.dixieflatline/confick "0.2.0"
   :description "Simple, stupid configuration management."
   :url "https://github.com/20centaurifux/confick"
   :license {:name "AGPLv3"
@@ -7,8 +7,7 @@
                  [org.clojure/core.memoize "1.1.266"]
                  [environ "1.2.0"]]
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}
-             :test {:env {:confick-path "test.edn"}}}
+  :profiles {:test {:env {:confick-path "test.edn"}}}
   :plugins [[dev.weavejester/lein-cljfmt "0.13.0"]
             [lein-environ "1.2.0"]
             [lein-codox "0.10.8"]]

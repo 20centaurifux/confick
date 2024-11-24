@@ -12,7 +12,7 @@ The library can be installed from Clojars:
 
 	(require '[confick.core :refer [bind lookup]])
 
-	;; receive configuration value
+	;; receive (mandatory) configuration value
 	(lookup [:tcp :address] :required true)
 
 	;; bind configuration values in a let block
@@ -20,7 +20,7 @@ The library can be installed from Clojars:
 	       ^{:default 80 :conform nat-int?} port [:tcp :port]]
 	  (println (format "%s:%d" addr port)))
 
-	;; access configuration values in EDN
+	;; access configuration values in edn
 	(require '[confick.edn :as edn])
 
 	(edn/read-string "{:address #cnf/req [:tcp port] :port #cnf/or [[:tcp :port] 80]}")
