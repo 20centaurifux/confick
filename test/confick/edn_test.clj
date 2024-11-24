@@ -22,7 +22,7 @@
 
 (deftest test-or
   (testing "key found"
-    (let [v (edn/read-string "#cnf/or [:foo]")]
+    (let [v (edn/read-string "#cnf/or [:foo 23]")]
       (is (= "bar" v))))
 
   (testing "key not found"
