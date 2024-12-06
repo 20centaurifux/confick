@@ -17,7 +17,7 @@
    'cnf/or or*})
 
 (defn read-string
-  "Read configuration from a string of edn. Configuration keys may be denotied
+  "Read configuration from a string of edn. Configuration keys may be denoted
    by tagging keys with #cnf/opt, #cnf/req and #cnf/or.
 
    Example:
