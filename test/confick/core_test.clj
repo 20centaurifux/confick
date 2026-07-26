@@ -10,7 +10,9 @@
               :answer {:of {:everything 42}}
               :values [1 2]
               :environment "test/resources/config.edn"
-              :file "test"}
+              :file "test"
+              :missing-environment :confick.core/none
+              :missing-file :confick.core/none}
              m))))
 
   (testing "file not found"
@@ -46,6 +48,17 @@
   (testing "throw exception when required key not found"
     (is (thrown? clojure.lang.ExceptionInfo
                  (lookup [:foo :bar] :required true))))
+
+  (testing "treat missing resolvable values as missing"
+    (testing "use default values"
+      (is (= "fallback" (lookup :missing-environment :default "fallback")))
+      (is (= "fallback" (lookup :missing-file :default "fallback"))))
+
+    (testing "throw exception for required values"
+      (is (thrown? clojure.lang.ExceptionInfo
+                   (lookup :missing-environment :required true)))
+      (is (thrown? clojure.lang.ExceptionInfo
+                   (lookup :missing-file :required true)))))
 
   (testing "set value if it conforms spec"
     (let [x (lookup :foo :conform string?)]

@@ -65,7 +65,7 @@ its contents. Relative paths are resolved from the application's working
 directory.
 
 If an environment variable or file does not exist, its value resolves to
-`:confick/none`.
+`:confick.core/none`.
 
 `gulp`, `lookup`, and `bind` resolve these values automatically. The lower-level
 `confick.edn` API keeps reading and resolving as separate operations:

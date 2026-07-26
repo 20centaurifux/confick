@@ -2,4 +2,6 @@
  :answer {:of {:everything 42}}
  :values [1 2]
  :environment #env :confick-path
- :file #slurp "test/resources/test.txt"}
+ :file #slurp "test/resources/test.txt"
+ :missing-environment #env :confick-test-missing-environment
+ :missing-file #slurp "test/resources/missing.txt"}

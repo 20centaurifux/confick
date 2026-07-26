@@ -14,7 +14,7 @@
 
 (deftype Environment [k]
   Resolvable
-  (resolve-val [_] (env/env k :confick/none))
+  (resolve-val [_] (env/env k :confick.core/none))
   Object
   (toString [_]
     (str "#env " k)))
@@ -25,7 +25,7 @@
                      (-> (slurp path)
                          str/trim)
                      (catch java.io.FileNotFoundException _
-                       :confick/none)))
+                       :confick.core/none)))
   Object
   (toString [_]
     (str "#slurp " path)))
