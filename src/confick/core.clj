@@ -62,7 +62,7 @@
               (if (#{::none} v)
                 (if required
                   (throw (ex-info "Key not found."
-                                  {:path path :value v}))
+                                  {:path path}))
                   default)
                 v))
             (assert-spec [v]
