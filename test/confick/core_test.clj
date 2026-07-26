@@ -1,6 +1,6 @@
 (ns confick.core-test
   (:require [clojure.core.memoize :as memo]
-            [clojure.test :refer [deftest testing is]]
+            [clojure.test :refer [deftest is testing]]
             [confick.core :refer [bind clear-cache! gulp lookup]]))
 
 (deftest test-gulp
@@ -75,6 +75,15 @@
                    (lookup :bar :default 23 :conform neg?))))))
 
 (deftest test-bind
+  (testing "reject an odd number of binding forms"
+    (let [error (try
+                  (macroexpand '(confick.core/bind [a :foo b] a))
+                  (catch clojure.lang.Compiler$CompilerException e
+                    e))]
+      (is (instance? IllegalArgumentException (ex-cause error)))
+      (is (re-find #"bind requires an even number of forms"
+                   (ex-message (ex-cause error))))))
+
   (testing "all keys found"
     (bind [a :foo
            b [:answer :of :everything]]

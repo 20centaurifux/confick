@@ -103,9 +103,13 @@
        (format \"%s:%d\" addr port))
    
    Throws an ExceptionInfo if a required key is missing or a value doesn't
-   conform a spec. The additional data of the exception contains path and value
-   of the affected key."
+  conform a spec. The additional data of the exception contains path and value
+  of the affected key."
   [bindings & body]
+  (when (odd? (count bindings))
+    (throw (IllegalArgumentException.
+            "bind requires an even number of forms in binding vector")))
+
   `(let ~(vec
           (mapcat
            (fn [[binding path]]
