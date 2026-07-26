@@ -64,8 +64,9 @@ corresponds to `DATABASE_PASSWORD`.
 its contents. Relative paths are resolved from the application's working
 directory.
 
-If an environment variable or file does not exist, its value resolves to
-`:confick.core/none`.
+If an environment variable or file does not exist, `lookup` and `bind` treat
+the value as missing: optional values return nil, defaults are applied, and
+required values cause an exception.
 
 `gulp`, `lookup`, and `bind` resolve these values automatically. The lower-level
 `confick.edn` API keeps reading and resolving as separate operations:
@@ -78,6 +79,10 @@ If an environment variable or file does not exist, its value resolves to
     edn/resolve-vals)
 ```
 
+In addition to standard EDN tagged literals such as `#inst` and `#uuid`,
+confick supports `#env` and `#slurp`. Application-defined tagged literal
+readers cannot be registered with confick's EDN reader.
+
 ## Configuration
 
 The default relative path of the configuration file is `"config.edn"`. It can
@@ -88,6 +93,9 @@ be overridden with the `CONFICK_PATH` environment variable or the
 CONFICK_PATH=/etc/my-app/config.edn java -jar my-app.jar
 java -Dconfick.path=/etc/my-app/config.edn -jar my-app.jar
 ```
+
+If the configuration file does not exist, confick uses an empty configuration
+map.
 
 Configuration is cached for 60 seconds by default. Set
 `CONFICK_CACHE_MILLIS` to a different duration in milliseconds, or to zero to

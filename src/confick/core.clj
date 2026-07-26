@@ -1,4 +1,5 @@
 (ns confick.core
+  "Loads, caches, and queries an EDN configuration."
   (:require [clojure.core.memoize :as memo]
             [clojure.spec.alpha :as s]
             [clojure.string :as str]
@@ -31,33 +32,42 @@
 (defonce ^:private from-cache (memo/ttl from-fs :ttl/threshold cache-millis))
 
 (defn clear-cache!
-  "Clears the cached configuration.
+  "Clears the in-memory configuration cache and returns nil.
 
-  The next call to `gulp` or `lookup` reloads the configuration from the file
-  system."
+  The next call to `gulp`, `lookup`, or `bind` reloads the configuration file."
   []
   (memo/memo-clear! from-cache)
   nil)
 
 (defn gulp
-  "Reads the entire edn formatted configuration file.
+  "Returns the complete, resolved EDN configuration.
 
-  The default relative path of the configuration file is \"config.edn\". It
-  gets overwritten by the CONFICK_PATH environment variable or Java system
-  property.
+  Reads `config.edn` by default. `CONFICK_PATH` or the `confick.path` Java
+  system property can override the path. Returns an empty map when the file
+  does not exist.
 
-  Set CONFICK_CACHE_MILLIS to zero to disable caching."
+  Results are cached for 60 seconds by default. Set
+  `CONFICK_CACHE_MILLIS` or the `confick.cache.millis` Java system property to
+  change the duration; use zero to disable caching."
   []
   (if (pos? cache-millis)
     (from-cache)
     (from-fs)))
 
 (defn lookup
-  "Searches for a configuration value, where `ks` is a sequence of keys.
+  "Returns the configuration value at `ks`.
 
-   Throws an ExceptionInfo if a required key is missing or a value doesn't
-   conform a spec. The additional data of the exception contains path and value
-   of the affected key."
+  `ks` may be a single key or a sequence of nested keys. Supported options:
+
+  - `:required` — throw when the value is missing
+  - `:default` — value returned when the configuration value is missing
+  - `:conform` — spec or predicate used to validate the resulting value
+
+  Missing optional values return nil unless `:default` is supplied. Validation
+  happens after applying a default.
+
+  Throws ExceptionInfo with `:path` when a required value is missing. Throws
+  ExceptionInfo with `:path`, `:value`, and `:spec` when validation fails."
   [ks & {:keys [required default conform] :or {conform any?}}]
   (let [path (flatten [ks])]
     (letfn [(assert-required [v]
@@ -86,25 +96,24 @@
         [])))
 
 (defmacro bind
-  "Evaluates `body` in a lexical scope in which the symbols in the
-   binding-forms are bound to their corresponding configuration values.
+  "Binds configuration values and evaluates `body` in the resulting scope.
 
-   Example:
-     (bind [addr [:tcp :address]
-            port [:tcp :port]]
-       (format \"%s:%d\" addr port))
+  `bindings` is a vector of alternating binding forms and configuration paths.
+  Binding forms support the same destructuring as `let`.
 
-   Use metadata to assign default values, make configuration keys mandatory or
-   validate them with the Spec library.
+      (bind [{:keys [address port]} :tcp]
+        (format \"%s:%d\" address port))
 
-   Example:
-     (bind [^:required addr [:tcp :address]
-            ^{:default 80 :conform pos?} port [:tcp :port]
-       (format \"%s:%d\" addr port))
-   
-   Throws an ExceptionInfo if a required key is missing or a value doesn't
-  conform a spec. The additional data of the exception contains path and value
-  of the affected key."
+  Add `:required`, `:default`, or `:conform` metadata to a binding form to pass
+  the corresponding option to `lookup`.
+
+      (bind [^:required address [:tcp :address]
+             ^{:default 80 :conform pos-int?} port [:tcp :port]]
+        (format \"%s:%d\" address port))
+
+  Throws IllegalArgumentException during macro expansion when `bindings`
+  contains an odd number of forms. Missing or invalid values produce the same
+  ExceptionInfo as `lookup`."
   [bindings & body]
   (when (odd? (count bindings))
     (throw (IllegalArgumentException.
