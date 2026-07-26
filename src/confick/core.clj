@@ -29,6 +29,14 @@
 
 (defonce ^:private from-cache (memo/ttl from-fs :ttl/threshold cache-millis))
 
+(defn clear-cache!
+  "Clears the cached configuration.
+
+  The next call to `gulp` or `lookup` reloads the configuration from the file
+  system."
+  []
+  (memo/memo-clear! from-cache))
+
 (defn gulp
   "Reads the entire edn formatted configuration file.
 

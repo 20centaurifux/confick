@@ -10,10 +10,13 @@ The library can be installed from Clojars:
 
 ## Example
 
-	(require '[confick.core :refer [bind lookup]])
+	(require '[confick.core :refer [bind clear-cache! lookup]])
 
 	;; receive (mandatory) configuration value
 	(lookup [:tcp :address] :required true)
+
+	;; clear cached configuration so the next access reloads the file
+	(clear-cache!)
 
 	;; bind configuration values in a let block
 	(bind [^:required addr [:tcp :address]

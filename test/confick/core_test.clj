@@ -1,6 +1,7 @@
 (ns confick.core-test
-  (:require [clojure.test :refer [deftest testing is]]
-            [confick.core :refer [gulp lookup bind]]))
+  (:require [clojure.core.memoize :as memo]
+            [clojure.test :refer [deftest testing is]]
+            [confick.core :refer [bind clear-cache! gulp lookup]]))
 
 (deftest test-gulp
   (testing "load configuration"
@@ -13,6 +14,17 @@
                   confick.core/config-path "xyz"]
       (let [m (gulp)]
         (is (= {} m))))))
+
+(deftest test-clear-cache
+  (testing "reload configuration after clearing the cache"
+    (let [loads (atom 0)
+          cached-load (memo/ttl #(swap! loads inc) :ttl/threshold 60000)]
+      (with-redefs [confick.core/cache-millis 60000
+                    confick.core/from-cache cached-load]
+        (is (= 1 (gulp)))
+        (is (= 1 (gulp)))
+        (clear-cache!)
+        (is (= 2 (gulp)))))))
 
 (deftest test-lookup
   (testing "key found"
