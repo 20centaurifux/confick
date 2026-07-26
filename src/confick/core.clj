@@ -1,8 +1,8 @@
 (ns confick.core
   (:require [clojure.core.memoize :as memo]
-            [clojure.edn :as edn]
             [clojure.spec.alpha :as s]
             [clojure.string :as str]
+            [confick.edn :as edn]
             [environ.core :as env])
   (:import [java.lang NumberFormatException]))
 
@@ -24,7 +24,8 @@
   (try
     (-> config-path
         slurp
-        edn/read-string)
+        edn/read-string
+        edn/resolve-vals)
     (catch java.io.FileNotFoundException _ {})))
 
 (defonce ^:private from-cache (memo/ttl from-fs :ttl/threshold cache-millis))
@@ -35,7 +36,8 @@
   The next call to `gulp` or `lookup` reloads the configuration from the file
   system."
   []
-  (memo/memo-clear! from-cache))
+  (memo/memo-clear! from-cache)
+  nil)
 
 (defn gulp
   "Reads the entire edn formatted configuration file.
@@ -51,7 +53,7 @@
     (from-fs)))
 
 (defn lookup
-  "Searches for a configuration value, where ks is a sequence of keys.
+  "Searches for a configuration value, where `ks` is a sequence of keys.
 
    Throws an ExceptionInfo if a required key is missing or a value doesn't
    conform a spec. The additional data of the exception contains path and value
@@ -76,7 +78,7 @@
           assert-spec))))
 
 (defmacro bind
-  "Evaluates body in a lexical scope in which the symbols in the
+  "Evaluates `body` in a lexical scope in which the symbols in the
    binding-forms are bound to their corresponding configuration values.
 
    Example:

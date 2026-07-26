@@ -1,30 +1,62 @@
 (ns confick.edn
   (:refer-clojure :exclude [read-string])
   (:require [clojure.edn :as edn]
-            [confick.core :refer [lookup]]))
+            [clojure.string :as str]
+            [clojure.walk :as walk]
+            [environ.core :as env]))
 
-(defn- req
-  [ks]
-  (lookup ks :required true))
+;;; Resolvable Protocol & Types
 
-(defn- or*
-  [[ks default]]
-  (lookup ks :default default))
+(defprotocol Resolvable
+  "A value that can be resolved after an EDN form has been read."
+  (resolve-val [this]
+    "Resolves this instance and returns its resulting value."))
 
-(def ^:private default-readers
-  {'cnf/opt lookup
-   'cnf/req req
-   'cnf/or or*})
+(deftype Environment [k]
+  Resolvable
+  (resolve-val [_] (env/env k :confick/none))
+  Object
+  (toString [_]
+    (str "#env " k)))
+
+(deftype Slurp [path]
+  Resolvable
+  (resolve-val [_] (try
+                     (-> (slurp path)
+                         str/trim)
+                     (catch java.io.FileNotFoundException _
+                       :confick/none)))
+  Object
+  (toString [_]
+    (str "#slurp " path)))
+
+;;; EDN
+
+(defn- read-env
+  [k]
+  (->Environment (keyword k)))
+
+(defn- read-slurp
+  [path]
+  (->Slurp path))
+
+(def ^:private readers
+  {'env read-env
+   'slurp read-slurp})
 
 (defn read-string
-  "Read configuration from a string of edn. Configuration keys may be denoted
-   by tagging keys with #cnf/opt, #cnf/req and #cnf/or.
+  "Reads a single EDN form from `s`.
 
-   Example:
-   (read-string
-    \"{:address #cnf/req [:tcp :address] :port #cnf/or [[:tcp :port] 80]}\")"
-  ([s]
-   (read-string {:eof nil} s))
-  ([opts s]
-   (let [readers (merge default-readers (:readers opts {}))]
-     (edn/read-string (assoc opts :readers readers) s))))
+  In addition to standard EDN, the tagged literals `#env` and `#slurp` are
+  supported. Their values remain unresolved until passed to `resolve-vals`."
+  [s]
+  (edn/read-string {:readers readers} s))
+
+;;; Resolve
+
+(defn resolve-vals
+  "Recursively replaces every Resolvable in `form` with its resolved value."
+  [form]
+  (walk/postwalk #(cond-> %
+                    (satisfies? Resolvable %) resolve-val)
+                 form))

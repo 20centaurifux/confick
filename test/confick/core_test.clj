@@ -8,7 +8,9 @@
     (let [m (gulp)]
       (is (= {:foo "bar"
               :answer {:of {:everything 42}}
-              :values [1 2]}
+              :values [1 2]
+              :environment "test/resources/config.edn"
+              :file "test"}
              m))))
 
   (testing "file not found"

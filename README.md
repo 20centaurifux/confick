@@ -10,27 +10,91 @@ The library can be installed from Clojars:
 
 ## Example
 
-	(require '[confick.core :refer [bind clear-cache! lookup]])
+Given the following `config.edn`:
 
-	;; receive (mandatory) configuration value
-	(lookup [:tcp :address] :required true)
+```clojure
+{:tcp {:address "localhost"
+       :port 8080}}
+```
 
-	;; clear cached configuration so the next access reloads the file
-	(clear-cache!)
+The complete configuration can be loaded with `gulp`, individual values with
+`lookup`, or several values with `bind`:
 
-	;; bind configuration values in a let block
-	(bind [^:required addr [:tcp :address]
-	       ^{:default 80 :conform nat-int?} port [:tcp :port]]
-	  (println (format "%s:%d" addr port)))
+```clojure
+(require '[confick.core :as confick])
 
-	;; access configuration values in edn
-	(require '[confick.edn :as edn])
+;; load the complete configuration
+(confick/gulp)
+;; => {:tcp {:address "localhost", :port 8080}}
 
-	(edn/read-string "{:address #cnf/req [:tcp port] :port #cnf/or [[:tcp :port] 80]}")
+;; receive a mandatory configuration value
+(confick/lookup [:tcp :address] :required true)
+;; => "localhost"
+
+;; destructure configuration values in a let-like binding
+(confick/bind [{:keys [address port]} :tcp]
+  (format "%s:%d" address port))
+;; => "localhost:8080"
+
+;; use metadata for required values, defaults, and validation
+(confick/bind [^:required addr [:tcp :address]
+               ^{:default 80 :conform nat-int?} port [:tcp :port]]
+  (println (format "%s:%d" addr port)))
+
+;; force the next access to reload the configuration file
+(confick/clear-cache!)
+```
+
+## Resolvable EDN values
+
+Configuration files support tagged literals for values that are resolved when
+they are loaded through `confick.core`:
+
+```clojure
+{:database {:host "localhost"
+            :password #env :database-password}
+ :certificate #slurp "/run/secrets/certificate.pem"}
+```
+
+`#env` reads an environment variable or Java system property. The keyword
+follows environ's naming conventions; for example, `:database-password`
+corresponds to `DATABASE_PASSWORD`.
+
+`#slurp` reads the file at the given path and trims surrounding whitespace from
+its contents. Relative paths are resolved from the application's working
+directory.
+
+If an environment variable or file does not exist, its value resolves to
+`:confick/none`.
+
+`gulp`, `lookup`, and `bind` resolve these values automatically. The lower-level
+`confick.edn` API keeps reading and resolving as separate operations:
+
+```clojure
+(require '[confick.edn :as edn])
+
+(-> "{:password #env :database-password}"
+    edn/read-string
+    edn/resolve-vals)
+```
 
 ## Configuration
 
-The default relative path of the configuration file is \"config.edn\". It gets
-overwritten by the CONFICK_PATH environment variable or Java system property.
+The default relative path of the configuration file is `"config.edn"`. It can
+be overridden with the `CONFICK_PATH` environment variable or the
+`confick.path` Java system property:
 
-Set CONFICK_CACHE_MILLIS to zero to disable caching.
+```shell
+CONFICK_PATH=/etc/my-app/config.edn java -jar my-app.jar
+java -Dconfick.path=/etc/my-app/config.edn -jar my-app.jar
+```
+
+Configuration is cached for 60 seconds by default. Set
+`CONFICK_CACHE_MILLIS` to a different duration in milliseconds, or to zero to
+disable caching. The equivalent Java system property is
+`confick.cache.millis`:
+
+```shell
+CONFICK_CACHE_MILLIS=30000 java -jar my-app.jar
+java -Dconfick.cache.millis=0 -jar my-app.jar
+```

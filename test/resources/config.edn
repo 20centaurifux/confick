@@ -1,0 +1,5 @@
+{:foo "bar"
+ :answer {:of {:everything 42}}
+ :values [1 2]
+ :environment #env :confick-path
+ :file #slurp "test/resources/test.txt"}

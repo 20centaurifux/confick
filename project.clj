@@ -7,7 +7,7 @@
                  [org.clojure/core.memoize "1.2.281"]
                  [environ "1.2.0"]]
   :target-path "target/%s"
-  :profiles {:test {:env {:confick-path "test.edn"}}}
+  :profiles {:test {:env {:confick-path "test/resources/config.edn"}}}
   :plugins [[dev.weavejester/lein-cljfmt "0.16.5"]
             [lein-environ "1.2.0"]
             [lein-codox "0.10.8"]]
