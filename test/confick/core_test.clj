@@ -6,7 +6,9 @@
 (deftest test-gulp
   (testing "load configuration"
     (let [m (gulp)]
-      (is (= {:foo "bar" :answer {:of {:everything 42}}}
+      (is (= {:foo "bar"
+              :answer {:of {:everything 42}}
+              :values [1 2]}
              m))))
 
   (testing "file not found"
@@ -63,6 +65,15 @@
            b [:answer :of :everything]]
       (is (= "bar" a))
       (is (= 42 b))))
+
+  (testing "destructure configuration maps"
+    (bind [{:keys [of]} :answer]
+      (is (= {:everything 42} of))))
+
+  (testing "destructure configuration sequences"
+    (bind [[a b] :values]
+      (is (= 1 a))
+      (is (= 2 b))))
 
   (testing "key not found"
     (bind [x [:foo :bar]]

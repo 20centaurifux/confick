@@ -96,9 +96,9 @@
    conform a spec. The additional data of the exception contains path and value
    of the affected key."
   [bindings & body]
-  `(let* ~(vec (mapcat (fn [[v ks]]
-                         (list v (cons 'confick.core/lookup
-                                       (cons ks
-                                             (flatten (vec (meta v)))))))
-                       (partition 2 bindings)))
+  `(let ~(vec (mapcat (fn [[v ks]]
+                        (list v (cons 'confick.core/lookup
+                                      (cons ks
+                                            (flatten (vec (meta v)))))))
+                      (partition 2 bindings)))
      ~@body))
