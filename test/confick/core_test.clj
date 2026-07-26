@@ -49,6 +49,16 @@
     (is (thrown? clojure.lang.ExceptionInfo
                  (lookup [:foo :bar] :required true))))
 
+  (testing "reject collection keys"
+    (is (thrown-with-msg?
+         IllegalArgumentException
+         #"Configuration keys must not be collections"
+         (lookup [:routes [:get "/health"]])))
+    (is (thrown-with-msg?
+         IllegalArgumentException
+         #"Configuration keys must not be collections"
+         (lookup {:composite :key}))))
+
   (testing "treat missing resolvable values as missing"
     (testing "use default values"
       (is (= "fallback" (lookup :missing-environment :default "fallback")))

@@ -45,6 +45,11 @@ The complete configuration can be loaded with `gulp`, individual values with
 (confick/clear-cache!)
 ```
 
+Configuration keys used with `lookup` and `bind` must be simple values, such as
+keywords or strings. Collections such as vectors, lists, maps, or sets are not
+supported as keys. Nested maps remain accessible by passing a sequence of
+simple keys as the configuration path.
+
 ## Resolvable EDN values
 
 Configuration files support tagged literals for values that are resolved when

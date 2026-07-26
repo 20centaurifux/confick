@@ -57,7 +57,8 @@
 (defn lookup
   "Returns the configuration value at `ks`.
 
-  `ks` may be a single key or a sequence of nested keys. Supported options:
+  `ks` may be a single key or a sequence of nested keys. Keys must not be
+  collections. Supported options:
 
   - `:required` — throw when the value is missing
   - `:default` — value returned when the configuration value is missing
@@ -66,10 +67,15 @@
   Missing optional values return nil unless `:default` is supplied. Validation
   happens after applying a default.
 
-  Throws ExceptionInfo with `:path` when a required value is missing. Throws
-  ExceptionInfo with `:path`, `:value`, and `:spec` when validation fails."
+  Throws IllegalArgumentException when a key is a collection. Throws
+  ExceptionInfo with `:path` when a required value is missing, or with `:path`,
+  `:value`, and `:spec` when validation fails."
   [ks & {:keys [required default conform] :or {conform any?}}]
-  (let [path (flatten [ks])]
+  (let [path (if (sequential? ks) ks [ks])]
+    (when (some coll? path)
+      (throw (IllegalArgumentException.
+              "Configuration keys must not be collections.")))
+
     (letfn [(assert-required [v]
               (if (#{::none} v)
                 (if required
