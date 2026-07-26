@@ -111,10 +111,14 @@
              ^{:default 80 :conform pos-int?} port [:tcp :port]]
         (format \"%s:%d\" address port))
 
-  Throws IllegalArgumentException during macro expansion when `bindings`
-  contains an odd number of forms. Missing or invalid values produce the same
-  ExceptionInfo as `lookup`."
+  Throws IllegalArgumentException during macro expansion when `bindings` is
+  not a vector or contains an odd number of forms. Missing or invalid values
+  produce the same ExceptionInfo as `lookup`."
   [bindings & body]
+  (when-not (vector? bindings)
+    (throw (IllegalArgumentException.
+            "bind requires a vector for its bindings")))
+
   (when (odd? (count bindings))
     (throw (IllegalArgumentException.
             "bind requires an even number of forms in binding vector")))

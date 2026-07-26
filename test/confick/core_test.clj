@@ -75,6 +75,15 @@
                    (lookup :bar :default 23 :conform neg?))))))
 
 (deftest test-bind
+  (testing "reject a non-vector binding form"
+    (let [error (try
+                  (macroexpand '(confick.core/bind (a :foo) a))
+                  (catch clojure.lang.Compiler$CompilerException e
+                    e))]
+      (is (instance? IllegalArgumentException (ex-cause error)))
+      (is (re-find #"bind requires a vector"
+                   (ex-message (ex-cause error))))))
+
   (testing "reject an odd number of binding forms"
     (let [error (try
                   (macroexpand '(confick.core/bind [a :foo b] a))
