@@ -77,6 +77,14 @@
           assert-required
           assert-spec))))
 
+(defn- option-args
+  [metadata]
+  (->> (select-keys metadata [:required :default :conform])
+       (reduce-kv
+        (fn [args key value]
+          (conj args key value))
+        [])))
+
 (defmacro bind
   "Evaluates `body` in a lexical scope in which the symbols in the
    binding-forms are bound to their corresponding configuration values.
@@ -98,9 +106,14 @@
    conform a spec. The additional data of the exception contains path and value
    of the affected key."
   [bindings & body]
-  `(let ~(vec (mapcat (fn [[v ks]]
-                        (list v (cons 'confick.core/lookup
-                                      (cons ks
-                                            (flatten (vec (meta v)))))))
-                      (partition 2 bindings)))
+  `(let ~(vec
+          (mapcat
+           (fn [[binding path]]
+             (let [options (select-keys (meta binding)
+                                        [:required :default :conform])]
+               [binding
+                `(confick.core/lookup
+                  ~path
+                  ~@(option-args options))]))
+           (partition 2 bindings)))
      ~@body))

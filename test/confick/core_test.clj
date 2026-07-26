@@ -100,6 +100,10 @@
       (is (= "bar" a))
       (is (= 23 b))))
 
+  (testing "preserve a sequential default value"
+    (bind [^{:default [1 2]} xs :bar]
+      (is (= [1 2] xs))))
+
   (testing "throw exception when required key not found"
     (is (thrown? clojure.lang.ExceptionInfo
                  (bind [^:required _ [:foo :bar]]))))
