@@ -13,11 +13,21 @@
   (resolve-val [this]
     "Returns the resolved representation of this value."))
 
-(deftype ^:private Environment [k]
+(deftype ^{:doc "A deferred lookup of an environment variable or Java system
+  property identified by `k`.
+
+  Resolving an Environment returns the configured string value, or the
+  missing-value marker when no value exists."}
+ Environment [k]
   Resolvable
   (resolve-val [_] (env/env k :confick.core/none)))
 
-(deftype ^:private Slurp [path]
+(deftype ^{:doc "A deferred lookup of the file at `path`.
+
+  Resolving a Slurp returns the file contents as a string with surrounding
+  whitespace removed, or the missing-value marker when the file does not
+  exist."}
+ Slurp [path]
   Resolvable
   (resolve-val [_] (try
                      (-> (slurp path)
