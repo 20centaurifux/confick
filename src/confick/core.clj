@@ -54,6 +54,24 @@
     (from-cache)
     (from-fs)))
 
+(defn- ensure-required
+  [value path required default]
+  (if (#{::none} value)
+    (if required
+      (throw (ex-info "Key not found."
+                      {:path path}))
+      default)
+    value))
+
+(defn- ensure-spec
+  [value path conform]
+  (if (s/valid? conform value)
+    value
+    (throw (ex-info "Value doesn't conform spec."
+                    {:path path
+                     :value value
+                     :explain (s/explain-data conform value)}))))
+
 (defn lookup
   "Returns the configuration value at `ks`.
 
@@ -69,29 +87,17 @@
 
   Throws IllegalArgumentException when a key is a collection. Throws
   ExceptionInfo with `:path` when a required value is missing, or with `:path`,
-  `:value`, and `:spec` when validation fails."
+  `:value`, and `:explain` when validation fails."
   [ks & {:keys [required default conform] :or {conform any?}}]
   (let [path (if (sequential? ks) ks [ks])]
     (when (some coll? path)
       (throw (IllegalArgumentException.
               "Configuration keys must not be collections.")))
 
-    (letfn [(assert-required [v]
-              (if (#{::none} v)
-                (if required
-                  (throw (ex-info "Key not found."
-                                  {:path path}))
-                  default)
-                v))
-            (assert-spec [v]
-              (if (s/valid? conform v)
-                v
-                (throw (ex-info "Value doesn't conform spec."
-                                {:path path :value v :spec conform}))))]
-      (-> (gulp)
-          (get-in path ::none)
-          assert-required
-          assert-spec))))
+    (-> (gulp)
+        (get-in path ::none)
+        (ensure-required path required default)
+        (ensure-spec path conform))))
 
 (defn- option-args
   [metadata]

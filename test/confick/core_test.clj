@@ -1,5 +1,6 @@
 (ns confick.core-test
   (:require [clojure.core.memoize :as memo]
+            [clojure.spec.alpha :as s]
             [clojure.test :refer [deftest is testing]]
             [confick.core :refer [bind clear-cache! gulp lookup]]))
 
@@ -75,8 +76,14 @@
       (is (= "bar" x))))
 
   (testing "throw exception when value doesn't conform spec"
-    (is (thrown? clojure.lang.ExceptionInfo
-                 (lookup :foo :conform int?))))
+    (let [error (try
+                  (lookup :foo :conform int?)
+                  (catch clojure.lang.ExceptionInfo e
+                    e))]
+      (is (= {:path [:foo]
+              :value "bar"
+              :explain (s/explain-data int? "bar")}
+             (ex-data error)))))
 
   (testing "spec is validated after setting default value"
     (let [x (lookup :bar :default 23 :conform pos?)]
